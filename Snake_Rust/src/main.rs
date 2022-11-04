@@ -17,6 +17,9 @@ struct App {
 }
 
 impl App {
+  fn add_snake(&mut self, btn: &Button) {
+    println!("{}", btn);
+  }
   fn render(&mut self, args: &RenderArgs) {
     const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 0.0];
 
@@ -31,18 +34,17 @@ impl App {
 
 struct Snake {
   pos: Vec<Vec<i32>>,
-  direction: i32,
+  direction: Vec<i32>,
 }
 
 impl Snake {
-  fn mut add_snake(&mut self) {
-    self.pos.insert(0, vec![self.pos[0][0] + 10, self.pos[0][1] + 10])
-  }
-  fn render(&self, gl: &mut GlGraphics, args: &RenderArgs) {
+  // fn add_snake(&mut self, key) {
+  //   println!(key)
+  //   self.pos.insert(0, vec![self.pos[0][0] + self.direction[0], self.pos[0][1] + self.direction[1]])
+  // }
+  fn render(&mut self, gl: &mut GlGraphics, args: &RenderArgs) {
 
     let red: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-
-    self.add_snake();
 
     for i in &self.pos {
       let i: Vec<i32> = i.to_vec();
@@ -88,15 +90,20 @@ fn main() {
     gl: GlGraphics::new(opengl),
     snake: Snake {
       pos: vec![vec![160, 180]],
-      direction: 10
+      direction: vec![10, 0]
     },
     food: Food { pos_x: 320, pos_y: 180 },
   };
 
-  let mut events = Events::new(EventSettings::new());
+  let mut events = Events::new(EventSettings::new()).ups(1);
   while let Some(e) = events.next(&mut window) {
     if let Some(r) = e.render_args() {
       app.render(&r);
+    }
+    if let Some(k) = e.button_args() {
+      if k.state == ButtonState::Press {
+        app.add_snake(&k.button);
+      }
     }
   }
 }
