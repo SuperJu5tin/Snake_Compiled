@@ -16,10 +16,18 @@ struct App {
   food: Food,
 }
 
+#[derive(Clone, PartialEq)]
+enum Direction {
+  UP,
+  DOWN,
+  LEFT,
+  RIGHT,
+}
+
 impl App {
-  fn add_snake(&mut self, btn: &Button) {
-    println!("{}", btn);
-  }
+  // fn add_snake(&mut self, key: Key) {
+  //   println!("{}", key);
+  // }
   fn render(&mut self, args: &RenderArgs) {
     const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 0.0];
 
@@ -35,6 +43,7 @@ impl App {
 struct Snake {
   pos: Vec<Vec<i32>>,
   direction: Vec<i32>,
+  d: Direction,
 }
 
 impl Snake {
@@ -42,6 +51,12 @@ impl Snake {
   //   println!(key)
   //   self.pos.insert(0, vec![self.pos[0][0] + self.direction[0], self.pos[0][1] + self.direction[1]])
   // }
+  fn pressed(&mut self, btn: &Button) {
+    match Keyboard(btn) {
+      &Button::Keyboard(Key::Up) => println!("hi"),
+    }
+
+  }
   fn render(&mut self, gl: &mut GlGraphics, args: &RenderArgs) {
 
     let red: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
@@ -90,7 +105,8 @@ fn main() {
     gl: GlGraphics::new(opengl),
     snake: Snake {
       pos: vec![vec![160, 180]],
-      direction: vec![10, 0]
+      direction: vec![10, 0],
+      d: Direction::DOWN,
     },
     food: Food { pos_x: 320, pos_y: 180 },
   };
@@ -102,7 +118,7 @@ fn main() {
     }
     if let Some(k) = e.button_args() {
       if k.state == ButtonState::Press {
-        app.add_snake(&k.button);
+        app.snake.pressed(&k.button);
       }
     }
   }
