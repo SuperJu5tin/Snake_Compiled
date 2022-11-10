@@ -16,24 +16,25 @@ struct App {
   food: Food,
 }
 
-#[derive(Clone, PartialEq)]
-enum Direction {
-  UP,
-  DOWN,
-  LEFT,
-  RIGHT,
-}
-
 impl App {
-  // fn add_snake(&mut self, key: Key) {
-  //   println!("{}", key);
-  // }
+  fn add_snake(&mut self) {
+    self.snake.pos.insert(0, vec![self.pos[0][0] + self.direction[0][0], self.pos[0][1] + self.direction[0][1]])
+    let isfood = false;
+    for i in &self.pos {
+      let i: Vec<i32> = i.to_vec();
+      if (i == self.food) {
+
+      }
+    }
+  }
   fn render(&mut self, args: &RenderArgs) {
     const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 0.0];
 
     self.gl.draw(args.viewport(), |_c, gl| {
       graphics::clear(BLACK, gl)
     });
+
+    self.snake.add_snake();
 
     self.snake.render(&mut self.gl, args);
     self.food.render(&mut self.gl, args);
@@ -42,20 +43,19 @@ impl App {
 
 struct Snake {
   pos: Vec<Vec<i32>>,
-  direction: Vec<i32>,
-  d: Direction,
+  direction: Vec<Vec<i32>>,
 }
 
 impl Snake {
-  // fn add_snake(&mut self, key) {
-  //   println!(key)
-  //   self.pos.insert(0, vec![self.pos[0][0] + self.direction[0], self.pos[0][1] + self.direction[1]])
-  // }
+  
   fn pressed(&mut self, btn: &Button) {
-    match Keyboard(btn) {
-      &Button::Keyboard(Key::Up) => println!("hi"),
+    match btn {
+      &Button::Keyboard(Key::Up) => println!("Up!"),
+      &Button::Keyboard(Key::Down) => println!("Down!"),
+      &Button::Keyboard(Key::Left) => println!("Left!"),
+      &Button::Keyboard(Key::Right) => println!("Right!"),
+      _ => self.direction.insert(0, vec![10, 20])
     }
-
   }
   fn render(&mut self, gl: &mut GlGraphics, args: &RenderArgs) {
 
@@ -105,13 +105,12 @@ fn main() {
     gl: GlGraphics::new(opengl),
     snake: Snake {
       pos: vec![vec![160, 180]],
-      direction: vec![10, 0],
-      d: Direction::DOWN,
+      direction: vec![vec![10, 0]],
     },
     food: Food { pos_x: 320, pos_y: 180 },
   };
 
-  let mut events = Events::new(EventSettings::new()).ups(1);
+  let mut events = Events::new(EventSettings::new()).ups(10);
   while let Some(e) = events.next(&mut window) {
     if let Some(r) = e.render_args() {
       app.render(&r);
