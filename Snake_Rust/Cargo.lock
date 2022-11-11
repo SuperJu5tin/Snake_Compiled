@@ -15,12 +15,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "000444226fcff248f2bc4c7625be32c63caccfecc2723a2b9f78a7487a49c407"
 
 [[package]]
-name = "arraylist"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbe1b72da1f3c50297acb0da13ae15d6a2be0d122055474446a3a3d27e2eb7ce"
-
-[[package]]
 name = "arrayvec"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -899,7 +893,6 @@ dependencies = [
 name = "snake_game"
 version = "0.1.0"
 dependencies = [
- "arraylist",
  "piston",
  "piston2d-graphics",
  "piston2d-opengl_graphics",

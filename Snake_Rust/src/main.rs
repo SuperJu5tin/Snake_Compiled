@@ -8,6 +8,7 @@ use piston::event_loop::*;
 use piston::input::*;
 use glutin_window::GlutinWindow;
 use opengl_graphics::{GlGraphics, OpenGL};
+use rand::Rng::*;
 
 
 struct App {
@@ -18,13 +19,19 @@ struct App {
 
 impl App {
   fn add_snake(&mut self) {
-    self.snake.pos.insert(0, vec![self.pos[0][0] + self.direction[0][0], self.pos[0][1] + self.direction[0][1]])
-    let isfood = false;
-    for i in &self.pos {
+    self.snake.pos.insert(0, vec![self.snake.pos[0][0] + self.snake.direction_list[0][0], self.snake.pos[0][1] + self.snake.direction_list[0][1]]);
+    let mut is_food = false;
+    for i in &self.snake.pos {
+      println!("{}", i[0]);
       let i: Vec<i32> = i.to_vec();
-      if (i == self.food) {
-
+      if i == self.food.pos {
+        is_food = true
       }
+    }
+    if is_food {
+      self.food.randomize()
+    } else {
+      self.snake.pos.remove(self.snake.pos.len() - 1);
     }
   }
   fn render(&mut self, args: &RenderArgs) {
@@ -34,7 +41,7 @@ impl App {
       graphics::clear(BLACK, gl)
     });
 
-    self.snake.add_snake();
+    self.add_snake();
 
     self.snake.render(&mut self.gl, args);
     self.food.render(&mut self.gl, args);
@@ -43,18 +50,19 @@ impl App {
 
 struct Snake {
   pos: Vec<Vec<i32>>,
-  direction: Vec<Vec<i32>>,
+  direction_list: Vec<Vec<i32>>,
+  direction: Vec<i32>
 }
 
 impl Snake {
   
   fn pressed(&mut self, btn: &Button) {
     match btn {
-      &Button::Keyboard(Key::Up) => println!("Up!"),
-      &Button::Keyboard(Key::Down) => println!("Down!"),
-      &Button::Keyboard(Key::Left) => println!("Left!"),
-      &Button::Keyboard(Key::Right) => println!("Right!"),
-      _ => self.direction.insert(0, vec![10, 20])
+      &Button::Keyboard(Key::Up) => self.direction_list.insert(0, vec![0, -10]),
+      &Button::Keyboard(Key::Down) => self.direction_list.insert(0, vec![0, 10]),
+      &Button::Keyboard(Key::Left) => self.direction_list.insert(0, vec![-10, 0]),
+      &Button::Keyboard(Key::Right) => self.direction_list.insert(0, vec![10, 0]),
+      _ => ()
     }
   }
   fn render(&mut self, gl: &mut GlGraphics, args: &RenderArgs) {
@@ -74,8 +82,7 @@ impl Snake {
 }
 
 struct Food {
-  pos_x: i32,
-  pos_y: i32,
+  pos: Vec<i32>,
 }
 
 impl Food {
@@ -83,13 +90,17 @@ impl Food {
 
     let green: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
 
-    let square = graphics::rectangle::square(self.pos_x as f64, self.pos_y as f64, 10_f64);
+    let square = graphics::rectangle::square(self.pos[0] as f64, self.pos[1] as f64, 10_f64);
 
     gl.draw(args.viewport(), |c, gl| {
       let transform = c.transform;
 
       graphics::rectangle(green, square, transform, gl)
     })
+  }
+  fn randomize(&self) {
+    use rand::Rng;
+    self.pos = vec![mul(rand::thread_rng(), 10), mul(rand::thread_rng(), 10)];
   }
 }
 
@@ -105,9 +116,10 @@ fn main() {
     gl: GlGraphics::new(opengl),
     snake: Snake {
       pos: vec![vec![160, 180]],
-      direction: vec![vec![10, 0]],
+      direction_list: vec![vec![10, 0]],
+      direction: vec![10, 0]
     },
-    food: Food { pos_x: 320, pos_y: 180 },
+    food: Food { pos: vec![32, 18]},
   };
 
   let mut events = Events::new(EventSettings::new()).ups(10);
