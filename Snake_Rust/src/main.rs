@@ -2,34 +2,43 @@ extern crate glutin_window;
 extern crate graphics;
 extern crate opengl_graphics;
 extern crate piston;
+extern crate rand;
 
+use std::{thread, time};
 use piston::window::WindowSettings;
 use piston::event_loop::*;
 use piston::input::*;
 use glutin_window::GlutinWindow;
 use opengl_graphics::{GlGraphics, OpenGL};
-use rand::Rng::*;
+use rand::Rng;
 
 
 struct App {
   gl: GlGraphics,
   snake: Snake,
   food: Food,
+  score: i32,
+  is_playing: bool,
 }
 
 impl App {
+
   fn add_snake(&mut self) {
-    self.snake.pos.insert(0, vec![self.snake.pos[0][0] + self.snake.direction_list[0][0], self.snake.pos[0][1] + self.snake.direction_list[0][1]]);
+    self.snake.pos.insert(0, vec![self.snake.pos[0][0] + self.snake.direction[0][0], self.snake.pos[0][1] + self.snake.direction[0][1]]);
     let mut is_food = false;
     for i in &self.snake.pos {
-      println!("{}", i[0]);
       let i: Vec<i32> = i.to_vec();
+      if 0 > i[0] || i[0] > 480 || 0 > i[1] || i[1] > 360 {
+        self.is_playing = false;
+        println!("thanks for playing")
+      }
       if i == self.food.pos {
         is_food = true
       }
     }
     if is_food {
-      self.food.randomize()
+      self.food.randomize_food();
+      self.score+=1
     } else {
       self.snake.pos.remove(self.snake.pos.len() - 1);
     }
@@ -45,6 +54,8 @@ impl App {
 
     self.snake.render(&mut self.gl, args);
     self.food.render(&mut self.gl, args);
+
+    thread::sleep(time::Duration::from_millis(100));
   }
 }
 
@@ -55,13 +66,12 @@ struct Snake {
 }
 
 impl Snake {
-  
   fn pressed(&mut self, btn: &Button) {
     match btn {
-      &Button::Keyboard(Key::Up) => self.direction_list.insert(0, vec![0, -10]),
-      &Button::Keyboard(Key::Down) => self.direction_list.insert(0, vec![0, 10]),
-      &Button::Keyboard(Key::Left) => self.direction_list.insert(0, vec![-10, 0]),
-      &Button::Keyboard(Key::Right) => self.direction_list.insert(0, vec![10, 0]),
+      &Button::Keyboard(Key::Up) => self.direction.insert(0, vec![0, -10]),
+      &Button::Keyboard(Key::Down) => self.direction.insert(0, vec![0, 10]),
+      &Button::Keyboard(Key::Left) => self.direction.insert(0, vec![-10, 0]),
+      &Button::Keyboard(Key::Right) => self.direction.insert(0, vec![10, 0]),
       _ => ()
     }
   }
@@ -78,7 +88,12 @@ impl Snake {
         graphics::rectangle(red, square, transform, gl)
       })
     }
-  } 
+  }
+  // fn check_snake() {
+  //   if (i[0] > 480 || i[0] < 0 || i[1] > 360 || i[1] < 0) {
+  //     println!("you lost")
+  //   } 
+  // }
 }
 
 struct Food {
@@ -98,9 +113,8 @@ impl Food {
       graphics::rectangle(green, square, transform, gl)
     })
   }
-  fn randomize(&self) {
-    use rand::Rng;
-    self.pos = vec![mul(rand::thread_rng(), 10), mul(rand::thread_rng(), 10)];
+  fn randomize_food(&mut self) {
+    self.pos = vec![rand::thread_rng().gen_range(0, 48) * 10, rand::thread_rng().gen_range(0, 36) * 10]
   }
 }
 
@@ -119,10 +133,12 @@ fn main() {
       direction_list: vec![vec![10, 0]],
       direction: vec![10, 0]
     },
-    food: Food { pos: vec![32, 18]},
+    food: Food { pos: vec![320, 180] },
+    score: 0,
+    is_playing: true,
   };
 
-  let mut events = Events::new(EventSettings::new()).ups(10);
+  let mut events = Events::new(EventSettings::new());
   while let Some(e) = events.next(&mut window) {
     if let Some(r) = e.render_args() {
       app.render(&r);
