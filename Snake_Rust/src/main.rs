@@ -24,7 +24,7 @@ struct App {
 impl App {
 
   fn add_snake(&mut self) {
-    self.snake.pos.insert(0, vec![self.snake.pos[0][0] + self.snake.direction[0][0], self.snake.pos[0][1] + self.snake.direction[0][1]]);
+    self.snake.pos.insert(0, vec![self.snake.pos[0][0] + self.snake.direction_list[0][0], self.snake.pos[0][1] + self.snake.direction_list[0][1]]);
     let mut is_food = false;
     for i in &self.snake.pos {
       let i: Vec<i32> = i.to_vec();
@@ -68,10 +68,10 @@ struct Snake {
 impl Snake {
   fn pressed(&mut self, btn: &Button) {
     match btn {
-      &Button::Keyboard(Key::Up) => self.direction.insert(0, vec![0, -10]),
-      &Button::Keyboard(Key::Down) => self.direction.insert(0, vec![0, 10]),
-      &Button::Keyboard(Key::Left) => self.direction.insert(0, vec![-10, 0]),
-      &Button::Keyboard(Key::Right) => self.direction.insert(0, vec![10, 0]),
+      &Button::Keyboard(Key::Up) => self.direction_list.insert(0, vec![0, -10]),
+      &Button::Keyboard(Key::Down) => self.direction_list.insert(0, vec![0, 10]),
+      &Button::Keyboard(Key::Left) => self.direction_list.insert(0, vec![-10, 0]),
+      &Button::Keyboard(Key::Right) => self.direction_list.insert(0, vec![10, 0]),
       _ => ()
     }
   }
