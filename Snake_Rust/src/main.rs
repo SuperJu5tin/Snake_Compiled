@@ -24,14 +24,11 @@ struct App {
 impl App {
 
   fn add_snake(&mut self) {
+    self.check_snake();
     self.snake.pos.insert(0, vec![self.snake.pos[0][0] + self.snake.direction_list[0][0], self.snake.pos[0][1] + self.snake.direction_list[0][1]]);
     let mut is_food = false;
     for i in &self.snake.pos {
       let i: Vec<i32> = i.to_vec();
-      if 0 > i[0] || i[0] > 480 || 0 > i[1] || i[1] > 360 {
-        self.is_playing = false;
-        println!("thanks for playing")
-      }
       if i == self.food.pos {
         is_food = true
       }
@@ -57,12 +54,27 @@ impl App {
 
     thread::sleep(time::Duration::from_millis(100));
   }
+  fn check_snake(&mut self) {
+    if self.snake.pos.iter().filter(|&n| *n == self.snake.pos[0]).count() == 2 {
+      self.is_playing = false;
+      println!("thanks for playing");
+      println!("Score: {}", self.score );
+    }
+    for i in &self.snake.pos {
+      let i: Vec<i32> = i.to_vec();
+      if 0 > i[0] || i[0] > 480 || 0 > i[1] || i[1] > 360 {
+        self.is_playing = false;
+        println!("thanks for playing");
+        println!("Score: {}", self.score );
+      }
+    }
+  }
 }
 
 struct Snake {
   pos: Vec<Vec<i32>>,
   direction_list: Vec<Vec<i32>>,
-  direction: Vec<i32>
+  direction : Vec<i32>
 }
 
 impl Snake {
@@ -89,11 +101,12 @@ impl Snake {
       })
     }
   }
-  // fn check_snake() {
-  //   if (i[0] > 480 || i[0] < 0 || i[1] > 360 || i[1] < 0) {
-  //     println!("you lost")
-  //   } 
-  // }
+  fn check_dirrection() {
+    while direction != direction_list[0] {
+      direction_list.remove(0)
+    }
+    direction = direction_list[0]
+  }
 }
 
 struct Food {
@@ -131,7 +144,6 @@ fn main() {
     snake: Snake {
       pos: vec![vec![160, 180]],
       direction_list: vec![vec![10, 0]],
-      direction: vec![10, 0]
     },
     food: Food { pos: vec![320, 180] },
     score: 0,
@@ -146,6 +158,11 @@ fn main() {
     if let Some(k) = e.button_args() {
       if k.state == ButtonState::Press {
         app.snake.pressed(&k.button);
+      }
+    }
+    if let Some(_u) = e.update_args() {
+      if !app.is_playing {
+        break;
       }
     }
   }
