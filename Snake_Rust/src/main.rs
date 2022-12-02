@@ -24,8 +24,7 @@ struct App {
 impl App {
 
   fn add_snake(&mut self) {
-    self.check_snake();
-    self.snake.pos.insert(0, vec![self.snake.pos[0][0] + self.snake.direction_list[0][0], self.snake.pos[0][1] + self.snake.direction_list[0][1]]);
+    self.snake.pos.insert(0, vec![self.snake.pos[0][0] + self.snake.direction[0], self.snake.pos[0][1] + self.snake.direction[1]]);
     let mut is_food = false;
     for i in &self.snake.pos {
       let i: Vec<i32> = i.to_vec();
@@ -101,11 +100,13 @@ impl Snake {
       })
     }
   }
-  fn check_dirrection() {
-    while direction != direction_list[0] {
-      direction_list.remove(0)
+  fn check_dirrection(&mut self) {
+    if self.direction_list != vec![vec![0, 0]] {
+      while self.direction != self.direction_list[0] {
+        self.direction_list.remove(0);
+      };
+      self.direction = self.direction_list[0].to_vec()
     }
-    direction = direction_list[0]
   }
 }
 
@@ -144,13 +145,14 @@ fn main() {
     snake: Snake {
       pos: vec![vec![160, 180]],
       direction_list: vec![vec![10, 0]],
+      direction: vec![0, 0]
     },
     food: Food { pos: vec![320, 180] },
     score: 0,
     is_playing: true,
   };
 
-  let mut events = Events::new(EventSettings::new());
+  let mut events = Events::new(EventSettings::new()).ups(8);
   while let Some(e) = events.next(&mut window) {
     if let Some(r) = e.render_args() {
       app.render(&r);
@@ -161,6 +163,8 @@ fn main() {
       }
     }
     if let Some(_u) = e.update_args() {
+      app.check_snake();
+      app.snake.check_dirrection();
       if !app.is_playing {
         break;
       }
