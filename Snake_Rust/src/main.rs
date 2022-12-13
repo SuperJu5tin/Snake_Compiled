@@ -24,19 +24,22 @@ struct App {
 impl App {
 
   fn add_snake(&mut self) {
-    self.snake.pos.insert(0, vec![self.snake.pos[0][0] + self.snake.direction[0], self.snake.pos[0][1] + self.snake.direction[1]]);
-    let mut is_food = false;
-    for i in &self.snake.pos {
-      let i: Vec<i32> = i.to_vec();
-      if i == self.food.pos {
-        is_food = true
+    // println!("{}", self.snake.is_gamestart);
+    if self.snake.is_gamestart {
+      self.snake.pos.insert(0, vec![self.snake.pos[0][0] + self.snake.direction_list[0][0], self.snake.pos[0][1] + self.snake.direction_list[0][1]]);
+      let mut is_food = false;
+      for i in &self.snake.pos {
+        let i: Vec<i32> = i.to_vec();
+        if i == self.food.pos {
+          is_food = true
+        }
       }
-    }
-    if is_food {
-      self.food.randomize_food();
-      self.score+=1
-    } else {
-      self.snake.pos.remove(self.snake.pos.len() - 1);
+      if is_food {
+        self.food.randomize_food();
+        self.score+=1
+      } else {
+        self.snake.pos.remove(self.snake.pos.len() - 1);
+      }
     }
   }
   fn render(&mut self, args: &RenderArgs) {
@@ -45,8 +48,6 @@ impl App {
     self.gl.draw(args.viewport(), |_c, gl| {
       graphics::clear(BLACK, gl)
     });
-
-    self.add_snake();
 
     self.snake.render(&mut self.gl, args);
     self.food.render(&mut self.gl, args);
@@ -73,16 +74,37 @@ impl App {
 struct Snake {
   pos: Vec<Vec<i32>>,
   direction_list: Vec<Vec<i32>>,
-  direction : Vec<i32>
+  is_gamestart : bool,
 }
 
 impl Snake {
   fn pressed(&mut self, btn: &Button) {
+    if !self.is_gamestart {
+      match btn {
+        &Button::Keyboard(Key::Up) => {
+          self.direction_list.insert(0, vec![0, -10]);
+          self.is_gamestart = true
+        },
+        &Button::Keyboard(Key::Down) => {
+          self.direction_list.insert(0, vec![0, 10]);
+          self.is_gamestart = true
+        },
+        &Button::Keyboard(Key::Left) => {
+          self.direction_list.insert(0, vec![-10, 0]);
+          self.is_gamestart = true
+        },
+        &Button::Keyboard(Key::Right) => {
+          self.direction_list.insert(0, vec![10, 0]);
+          self.is_gamestart = true
+        },
+        _ => ()
+      }
+    }
     match btn {
-      &Button::Keyboard(Key::Up) => self.direction_list.insert(0, vec![0, -10]),
-      &Button::Keyboard(Key::Down) => self.direction_list.insert(0, vec![0, 10]),
-      &Button::Keyboard(Key::Left) => self.direction_list.insert(0, vec![-10, 0]),
-      &Button::Keyboard(Key::Right) => self.direction_list.insert(0, vec![10, 0]),
+      &Button::Keyboard(Key::Up) => self.check_dirrection(vec![0, -10]),
+      &Button::Keyboard(Key::Down) => self.check_dirrection(vec![0, 10]),
+      &Button::Keyboard(Key::Left) => self.check_dirrection(vec![-10, 0]),
+      &Button::Keyboard(Key::Right) => self.check_dirrection(vec![10, 0]),
       _ => ()
     }
   }
@@ -100,13 +122,26 @@ impl Snake {
       })
     }
   }
-  fn check_dirrection(&mut self) {
-    if self.direction_list != vec![vec![0, 0]] {
-      while self.direction != self.direction_list[0] {
-        self.direction_list.remove(0);
+  fn check_duplication(&mut self, direction: Vec<i32>) {
+    if self.direction_list[0] != vec![0, 0] {
+      if direction != self.direction_list[0] {
+        return true;
       };
-      self.direction = self.direction_list[0].to_vec()
     }
+  } 
+  fn check_back_onself(&mut self, direction: Vec<i32>) {
+    let right: Vec<i32> = vec![10, 0];
+    let left: Vec<i32> = vec![-10, 0];
+    let down: Vec<i32> = vec![0, 10];
+    let up: Vec<i32> = vec![0, -10];
+    match &self.direction_list[0] {
+      right => if direction == vec![-10, 0] {self.direction_list.remove(0);},
+      _ => ()
+    }
+  }
+  fn check_dirrection(&mut self, direction: Vec<i32>) {
+    if (self.check_duplication(direction.to_vec()) && self.check_back_onself(direction.to_vec()))
+    
   }
 }
 
@@ -144,17 +179,19 @@ fn main() {
     gl: GlGraphics::new(opengl),
     snake: Snake {
       pos: vec![vec![160, 180]],
-      direction_list: vec![vec![10, 0]],
-      direction: vec![0, 0]
+      direction_list: vec![vec![0, 0]],
+      is_gamestart: false
     },
     food: Food { pos: vec![320, 180] },
     score: 0,
     is_playing: true,
   };
 
-  let mut events = Events::new(EventSettings::new()).ups(8);
+  let mut events = Events::new(EventSettings::new()).ups(20);
   while let Some(e) = events.next(&mut window) {
     if let Some(r) = e.render_args() {
+      app.check_snake();
+      app.add_snake();
       app.render(&r);
     }
     if let Some(k) = e.button_args() {
@@ -163,8 +200,7 @@ fn main() {
       }
     }
     if let Some(_u) = e.update_args() {
-      app.check_snake();
-      app.snake.check_dirrection();
+      
       if !app.is_playing {
         break;
       }
