@@ -75,6 +75,7 @@ struct Snake {
   pos: Vec<Vec<i32>>,
   direction_list: Vec<Vec<i32>>,
   is_gamestart : bool,
+  checks: Vec<bool>,
 }
 
 impl Snake {
@@ -123,25 +124,33 @@ impl Snake {
     }
   }
   fn check_duplication(&mut self, direction: Vec<i32>) {
-    if self.direction_list[0] != vec![0, 0] {
-      if direction != self.direction_list[0] {
-        return true;
-      };
-    }
+    if self.direction_list[0] != vec![0, 0] && direction != self.direction_list[0]{
+      self.checks[0] = true;
+    } else {self.checks[0] = false };
   } 
   fn check_back_onself(&mut self, direction: Vec<i32>) {
     let right: Vec<i32> = vec![10, 0];
     let left: Vec<i32> = vec![-10, 0];
     let down: Vec<i32> = vec![0, 10];
     let up: Vec<i32> = vec![0, -10];
-    match &self.direction_list[0] {
-      right => if direction == vec![-10, 0] {self.direction_list.remove(0);},
-      _ => ()
-    }
+    if self.direction_list[0] == right && direction == left {self.checks[1] = false}
+    if self.direction_list[0] == left && direction == right {self.checks[1] = false}
+    if self.direction_list[0] == up && direction == down {self.checks[1] = false}
+    if self.direction_list[0] == down && direction == up {self.checks[1] = false}
+    // match &self.direction_list[0] {
+    //   right => if direction == vec![-10, 0] {},
+    //   left => if direction == vec![10, 0] {self.checks[1] = false},
+    //   down => if direction == vec![0, -10] {self.checks[1] = false},
+    //   up => if direction == vec![0, 10] {self.checks[1] = false},
+    //   _ => self.checks[1] = true
+    // }
   }
   fn check_dirrection(&mut self, direction: Vec<i32>) {
-    if (self.check_duplication(direction.to_vec()) && self.check_back_onself(direction.to_vec()))
-    
+    self.check_duplication(direction.to_vec());
+    self.check_back_onself(direction.to_vec());
+    if self.checks[0] && self.checks[1] {
+      self.direction_list.insert(0, direction)
+    }
   }
 }
 
@@ -180,7 +189,8 @@ fn main() {
     snake: Snake {
       pos: vec![vec![160, 180]],
       direction_list: vec![vec![0, 0]],
-      is_gamestart: false
+      is_gamestart: false,
+      checks: vec![false, true],
     },
     food: Food { pos: vec![320, 180] },
     score: 0,
