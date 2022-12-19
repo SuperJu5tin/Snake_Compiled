@@ -137,13 +137,6 @@ impl Snake {
     if self.direction_list[0] == left && direction == right {self.checks[1] = false}
     if self.direction_list[0] == up && direction == down {self.checks[1] = false}
     if self.direction_list[0] == down && direction == up {self.checks[1] = false}
-    // match &self.direction_list[0] {
-    //   right => if direction == vec![-10, 0] {},
-    //   left => if direction == vec![10, 0] {self.checks[1] = false},
-    //   down => if direction == vec![0, -10] {self.checks[1] = false},
-    //   up => if direction == vec![0, 10] {self.checks[1] = false},
-    //   _ => self.checks[1] = true
-    // }
   }
   fn check_dirrection(&mut self, direction: Vec<i32>) {
     self.check_duplication(direction.to_vec());
